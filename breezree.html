@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Breezree 🌿</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+    :root {
+      --green-light: #d4edd4;
+      --green-mid:   #a8d5a2;
+      --green-dark:  #6aab6a;
+      --lavender:    #d8c4f0;
+      --lavender-mid:#b89de0;
+      --lavender-dark:#9370cc;
+      --white:       #fafdf9;
+      --text:        #3b3550;
+      --text-soft:   #7a6f8a;
+      --shadow:      rgba(100,80,160,0.13);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family:'Nunito',sans-serif;
+      background:linear-gradient(135deg,#eaf7ea 0%,#f0eafc 50%,#eaf7ea 100%);
+      min-height:100vh;
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    .bg-leaves { position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden; }
+    .leaf { position:absolute;opacity:0.18;animation:leafFloat linear infinite; }
+    @keyframes leafFloat {
+      0%   { transform:translateY(110vh) rotate(0deg);opacity:0; }
+      10%  { opacity:0.18; }
+      90%  { opacity:0.18; }
+      100% { transform:translateY(-10vh) rotate(360deg);opacity:0; }
+    }
+
+    .page { position:relative;z-index:1;display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1rem; }
+    .page.active { display:flex; }
+
+    .brand { text-align:center;margin-bottom:2.5rem; }
+    .brand h1 {
+      font-family:'Playfair Display',serif;
+      font-size:3rem;font-weight:700;
+      background:linear-gradient(135deg,var(--green-dark),var(--lavender-dark));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .brand p { font-size:0.95rem;color:var(--text-soft);margin-top:0.4rem;font-style:italic;max-width:400px; }
+
+    .card {
+      background:rgba(255,255,255,0.72);backdrop-filter:blur(12px);
+      border-radius:28px;padding:2.5rem 2.2rem;
+      box-shadow:0 8px 40px var(--shadow);
+      width:100%;max-width:520px;
+      border:1.5px solid rgba(216,196,240,0.4);
+    }
+
+    .question-step { display:none; }
+    .question-step.active { display:block; }
+
+    .q-number { font-size:0.75rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--lavender-dark);margin-bottom:0.6rem; }
+    .q-text { font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:1.6rem;line-height:1.4; }
+
+    .options { display:flex;flex-direction:column;gap:0.9rem; }
+    .option-btn {
+      display:flex;align-items:center;gap:0.85rem;
+      padding:1rem 1.3rem;border-radius:16px;border:2px solid transparent;
+      background:linear-gradient(white,white) padding-box,
+                linear-gradient(135deg,var(--green-mid),var(--lavender-mid)) border-box;
+      cursor:pointer;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:600;color:var(--text);
+      transition:all 0.22s ease;text-align:left;
+    }
+    .option-btn:hover {
+      background:linear-gradient(135deg,#eaf7ea,#f0eafc) padding-box,
+                linear-gradient(135deg,var(--green-dark),var(--lavender-dark)) border-box;
+      transform:translateY(-2px);box-shadow:0 6px 20px var(--shadow);
+    }
+    .option-btn.selected {
+      background:linear-gradient(135deg,var(--green-mid),var(--lavender)) padding-box,
+                linear-gradient(135deg,var(--green-dark),var(--lavender-dark)) border-box;
+    }
+    .option-icon { font-size:1.4rem;flex-shrink:0; }
+
+    .progress { display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.6rem; }
+    .dot { width:8px;height:8px;border-radius:50%;background:var(--lavender);transition:all 0.3s ease; }
+    .dot.active { background:var(--lavender-dark);width:22px;border-radius:4px; }
+    .dot.done   { background:var(--green-dark); }
+
+    /* Loading */
+    #page-loading .card { text-align:center;padding:3rem 2rem; }
+    .nature-anim { width:120px;height:120px;margin:0 auto 1.5rem;position:relative; }
+    .tree-anim { animation:treeSway 2.5s ease-in-out infinite;transform-origin:bottom center; }
+    @keyframes treeSway { 0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)} }
+    .loading-text { font-family:'Playfair Display',serif;font-style:italic;font-size:1.1rem;color:var(--text-soft);margin-bottom:0.5rem; }
+    .loading-dots span {
+      display:inline-block;width:8px;height:8px;border-radius:50%;
+      background:var(--lavender-mid);margin:0 3px;
+      animation:dotBounce 1.2s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2){animation-delay:0.2s;background:var(--green-mid);}
+    .loading-dots span:nth-child(3){animation-delay:0.4s;}
+    @keyframes dotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .loading-tip { font-size:0.82rem;color:var(--text-soft);margin-top:1.2rem;font-style:italic; }
+
+    /* Music page */
+    #page-music .brand { margin-bottom:1.5rem; }
+    #page-music .card  { padding:2rem 2.2rem; }
+
+    .song-tag  { font-size:0.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--green-dark);margin-bottom:0.4rem; }
+    .song-title{ font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text);margin-bottom:0.3rem; }
+    .song-desc { font-size:0.88rem;color:var(--text-soft);margin-bottom:1rem;font-style:italic; }
+
+    .prompt-badge {
+      background:linear-gradient(135deg,#eaf7ea,#f0eafc);
+      border-radius:12px;padding:0.7rem 1rem;
+      font-size:0.82rem;color:var(--text-soft);margin-bottom:1.4rem;
+      border-left:3px solid var(--lavender-mid);font-style:italic;
+    }
+
+    .waveform { display:flex;align-items:center;gap:3px;height:48px;margin-bottom:1.4rem;justify-content:center; }
+    .wave-bar {
+      width:4px;border-radius:2px;
+      background:linear-gradient(to top,var(--green-dark),var(--lavender-mid));
+      animation:waveAnim 1s ease-in-out infinite;
+    }
+    @keyframes waveAnim{0%,100%{transform:scaleY(0.3)}50%{transform:scaleY(1)}}
+    .wave-bar:nth-child(2n){animation-delay:0.1s}
+    .wave-bar:nth-child(3n){animation-delay:0.2s}
+    .wave-bar:nth-child(4n){animation-delay:0.3s}
+    .wave-bar:nth-child(5n){animation-delay:0.15s}
+    .wave-bar.paused{animation-play-state:paused}
+
+    .transport {
+      display:flex;align-items:center;gap:0.8rem;margin-bottom:1rem;
+    }
+    .play-btn {
+      width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+      background:linear-gradient(135deg,var(--green-dark),var(--lavender-dark));
+      color:white;font-size:1.3rem;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 16px var(--shadow);transition:all 0.2s;
+    }
+    .play-btn:hover{transform:scale(1.07);}
+    .progress-bar-wrap {
+      flex:1;height:8px;background:var(--lavender);border-radius:4px;
+      cursor:pointer;position:relative;overflow:hidden;
+    }
+    .progress-bar-fill {
+      height:100%;border-radius:4px;
+      background:linear-gradient(90deg,var(--green-dark),var(--lavender-dark));
+      width:0%;transition:width 0.1s linear;
+    }
+    .time-label { font-size:0.78rem;color:var(--text-soft);min-width:36px;text-align:right; }
+
+    .actions { display:flex;gap:0.8rem;flex-wrap:wrap; }
+    .btn {
+      flex:1;min-width:120px;padding:0.85rem 1.2rem;border-radius:14px;border:none;
+      font-family:'Nunito',sans-serif;font-size:0.95rem;font-weight:700;
+      cursor:pointer;transition:all 0.22s ease;
+      display:flex;align-items:center;justify-content:center;gap:0.5rem;
+    }
+    .btn-primary { background:linear-gradient(135deg,var(--green-dark),var(--lavender-dark));color:white;box-shadow:0 4px 16px var(--shadow); }
+    .btn-primary:hover { transform:translateY(-2px);box-shadow:0 8px 24px var(--shadow); }
+    .btn-secondary { background:white;color:var(--lavender-dark);border:2px solid var(--lavender-mid); }
+    .btn-secondary:hover { background:var(--lavender);transform:translateY(-2px); }
+    .btn:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+
+    .error-banner {
+      background:#fff0f0;border:1.5px solid #ffb3b3;border-radius:12px;
+      padding:0.9rem 1.1rem;margin-bottom:1.2rem;font-size:0.88rem;color:#a03030;display:none;
+    }
+
+    @keyframes noteFloat1{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(5deg)}}
+    @keyframes noteFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes noteFloat3{0%,100%{transform:translateY(0) rotate(5deg)}50%{transform:translateY(-6px) rotate(-5deg)}}
+    @media(max-width:480px){.brand h1{font-size:2.2rem}.card{padding:1.8rem 1.4rem}}
+  </style>
+</head>
+<body>
+
+<div class="bg-leaves" id="bgLeaves"></div>
+
+<!-- PAGE 1: QnA -->
+<div class="page active" id="page-qna">
+  <div class="brand">
+    <h1>🌿 Breezree</h1>
+    <p>Apart from just looking at trees and flowers, we must also <em>hear</em> nature's magical sounds. Let's make your song! 💚</p>
+  </div>
+  <div class="card">
+    <div class="progress" id="progressDots">
+      <div class="dot active" id="dot-0"></div>
+      <div class="dot"        id="dot-1"></div>
+      <div class="dot"        id="dot-2"></div>
+    </div>
+
+    <div class="question-step active" id="step-0">
+      <div class="q-number">Question 1 of 3</div>
+      <div class="q-text">Do you like K-Pop? 🎤</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(0,'kpop','yes',this)">
+          <span class="option-icon">✨</span>
+          <span>Yes! Bold, stylish, give me that K-Pop energy</span>
+        </button>
+        <button class="option-btn" onclick="answer(0,'kpop','no',this)">
+          <span class="option-icon">🎶</span>
+          <span>No thanks — I prefer pure instrumental music</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="question-step" id="step-1">
+      <div class="q-number">Question 2 of 3</div>
+      <div class="q-text">Calm music, or songs with some energy? ⚡🎸</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(1,'energy','calm',this)">
+          <span class="option-icon">🌸</span>
+          <span>Calm — soft, peaceful, like a gentle breeze</span>
+        </button>
+        <button class="option-btn" onclick="answer(1,'energy','energetic',this)">
+          <span class="option-icon">⛈️</span>
+          <span>Energetic — thunder, lightning, full power!</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="question-step" id="step-2">
+      <div class="q-number">Question 3 of 3</div>
+      <div class="q-text">Girly or boyish vibes? 🌺🌲</div>
+      <div class="options">
+        <button class="option-btn" onclick="answer(2,'vibe','girly',this)">
+          <span class="option-icon">🌸</span>
+          <span>Girly — floral, dreamy, soft harmonies</span>
+        </button>
+        <button class="option-btn" onclick="answer(2,'vibe','boyish',this)">
+          <span class="option-icon">🌲</span>
+          <span>Boyish — adventurous, earthy, bold beats</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: Loading -->
+<div class="page" id="page-loading">
+  <div class="brand"><h1>🌿 Breezree</h1></div>
+  <div class="card">
+    <div class="nature-anim">
+      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="60" cy="108" rx="38" ry="6" fill="#c8e6c9" opacity="0.7"/>
+        <rect x="54" y="72" width="12" height="36" rx="6" fill="#a5815a"/>
+        <g class="tree-anim">
+          <ellipse cx="60" cy="55" rx="32" ry="36" fill="#a8d5a2"/>
+          <ellipse cx="45" cy="62" rx="18" ry="22" fill="#c5e8c0"/>
+          <ellipse cx="75" cy="62" rx="18" ry="22" fill="#b8e0b2"/>
+          <ellipse cx="60" cy="38" rx="22" ry="26" fill="#c8edbe"/>
+        </g>
+        <text x="88" y="42" font-size="14" fill="#b89de0" style="animation:noteFloat1 2s ease-in-out infinite">♪</text>
+        <text x="22" y="50" font-size="12" fill="#9370cc" style="animation:noteFloat2 2.4s ease-in-out infinite">♫</text>
+        <text x="78" y="70" font-size="10" fill="#a8d5a2" style="animation:noteFloat3 1.8s ease-in-out infinite">♩</text>
+      </svg>
+    </div>
+    <div class="loading-text" id="loadingText">Nature is composing your song…</div>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <div class="loading-tip" id="loadingTip">🌱 Did you know? Forests have their own music — wind, leaves, and birdsong all in harmony.</div>
+  </div>
+</div>
+
+<!-- PAGE 3: Music Player -->
+<div class="page" id="page-music">
+  <div class="brand">
+    <h1>🌿 Breezree</h1>
+    <p>Your nature song is ready! 🎉</p>
+  </div>
+  <div class="card">
+    <div class="error-banner" id="errorBanner"></div>
+    <div class="song-tag">Your Breezree Song</div>
+    <div class="song-title" id="songTitle">A Gentle Forest Breeze</div>
+    <div class="song-desc"  id="songDesc">Calm · Instrumental · Nature</div>
+    <div class="prompt-badge" id="promptBadge"></div>
+
+    <div class="waveform" id="waveform"></div>
+
+    <div class="transport">
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+      <div class="progress-bar-wrap" id="progressWrap" onclick="seekTo(event)">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="time-label" id="timeLabel">0:00</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="exportBtn" onclick="exportSong()">💾 Save my song</button>
+      <button class="btn btn-secondary" onclick="newSong()">🌱 New song</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const answers = {};
+let currentStep = 0;
+let audioCtx = null;
+let audioBuffer = null;
+let sourceNode = null;
+let isPlaying = false;
+let startTime = 0;
+let pauseOffset = 0;
+let progressRAF = null;
+
+const loadingMessages = [
+  "Nature is composing your song…",
+  "The wind is tuning the leaves…",
+  "Birdsong being woven in… 🐦",
+  "Almost there, the forest is ready!",
+];
+const natureTips = [
+  "🌱 Did you know? Forests have their own music — wind, leaves, and birdsong.",
+  "🦋 Butterflies are drawn to flowers with the sweetest smells — and sounds!",
+  "🌊 The sound of water has been shown to calm the heart rate.",
+  "🌿 Some trees can 'talk' to each other through underground fungal networks.",
+  "🐦 Birds change their songs depending on the time of day!",
+];
+
+// ── Floating leaves ────────────────────────────────────────────────────────
+(function spawnLeaves() {
+  const c = document.getElementById('bgLeaves');
+  const svgs = [
+    `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="10" ry="18" fill="#a8d5a2" transform="rotate(-30 20 20)"/></svg>`,
+    `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="8" ry="16" fill="#d8c4f0" transform="rotate(20 20 20)"/></svg>`,
+    `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9" fill="#c8e6c9"/></svg>`,
+  ];
+  for (let i=0;i<14;i++){
+    const el=document.createElement('div');
+    el.className='leaf';el.innerHTML=svgs[i%svgs.length];
+    const s=18+Math.random()*28;
+    el.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${10+Math.random()*14}s;animation-delay:${-Math.random()*14}s;`;
+    c.appendChild(el);
+  }
+})();
+
+// ── Waveform ───────────────────────────────────────────────────────────────
+(function buildWaveform(){
+  const wf=document.getElementById('waveform');
+  for(let i=0;i<32;i++){
+    const b=document.createElement('div');
+    b.className='wave-bar';
+    b.style.height=(12+Math.random()*36)+'px';
+    b.style.animationDuration=(0.6+Math.random()*0.8)+'s';
+    wf.appendChild(b);
+  }
+})();
+
+// ── QnA logic ──────────────────────────────────────────────────────────────
+function answer(step, key, val, btn) {
+  answers[key] = val;
+  document.querySelectorAll(`#step-${step} .option-btn`).forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  setTimeout(()=>{
+    if(step<2) goToStep(step+1);
+    else startGeneration();
+  },320);
+}
+
+function goToStep(n){
+  document.querySelectorAll('.question-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`step-${n}`).classList.add('active');
+  currentStep=n; updateDots();
+}
+
+function updateDots(){
+  [0,1,2].forEach(i=>{
+    const d=document.getElementById(`dot-${i}`);
+    d.className='dot'+(i<currentStep?' done':i===currentStep?' active':'');
+  });
+}
+
+// ── Prompt & meta ──────────────────────────────────────────────────────────
+function buildPrompt(){
+  const {kpop,energy,vibe}=answers;
+  const parts=[];
+  if(kpop==='yes') parts.push('K-Pop style with bold synths and stylish production');
+  else             parts.push('purely instrumental, no vocals');
+  if(energy==='calm') parts.push('calm peaceful ambient tempo');
+  else                parts.push('energetic and powerful with dramatic thunder-like percussion and electric guitar energy');
+  if(vibe==='girly') parts.push('floral dreamy feminine tones, soft harp and bells');
+  else               parts.push('adventurous earthy masculine tones, deep bass and bold brass');
+  parts.push('nature-inspired, featuring birdsong, rustling leaves, and gentle forest atmosphere');
+  return parts.join(', ');
+}
+
+function buildSongMeta(){
+  const {kpop,energy,vibe}=answers;
+  const title=energy==='calm'
+    ?(vibe==='girly'?'Petals in the Wind':'Into the Forest')
+    :(vibe==='girly'?'Storm of Blossoms':'Thunder Grove');
+  const tags=[kpop==='yes'?'K-Pop':'Instrumental',energy==='calm'?'Calm':'Energetic',vibe==='girly'?'Floral':'Earthy','Nature'];
+  return{title,desc:tags.join(' · ')};
+}
+
+// ── Robust JSON extractor ──────────────────────────────────────────────────
+function extractJSON(raw) {
+  // 1. Strip markdown fences
+  let s = raw.replace(/```json|```/gi, '').trim();
+  // 2. Find the first { and last } to isolate the object
+  const first = s.indexOf('{');
+  const last  = s.lastIndexOf('}');
+  if (first === -1 || last === -1) throw new Error("No JSON object found in response");
+  s = s.slice(first, last + 1);
+  // 3. Try parsing; if it fails, attempt light repair
+  try {
+    return JSON.parse(s);
+  } catch(e) {
+    // Remove trailing commas before ] or } (common LLM mistake)
+    const fixed = s.replace(/,\s*([}\]])/g, '$1');
+    return JSON.parse(fixed); // will throw with a clear message if still broken
+  }
+}
+
+// ── AI → Music Score → Web Audio ──────────────────────────────────────────
+async function startGeneration(){
+  showPage('page-loading');
+  const prompt=buildPrompt();
+  let msgIdx=0;
+  const msgEl=document.getElementById('loadingText');
+  const tipEl=document.getElementById('loadingTip');
+  const msgT=setInterval(()=>{ msgIdx=(msgIdx+1)%loadingMessages.length; msgEl.textContent=loadingMessages[msgIdx]; },5000);
+  const tipT=setInterval(()=>{ tipEl.textContent=natureTips[Math.floor(Math.random()*natureTips.length)]; },6000);
+
+  try {
+    const systemPrompt = `You are a music composer. Output ONLY a raw JSON object — no markdown, no backticks, no prose before or after. Template: {"bpm":80,"duration":24,"layers":[{"instrument":"sine","role":"melody","notes":[{"time":0,"freq":261.63,"dur":1,"vol":0.6},{"time":2,"freq":293.66,"dur":1,"vol":0.55}],"reverb":0.3,"pan":0},{"instrument":"triangle","role":"bass","notes":[{"time":0,"freq":130.81,"dur":2,"vol":0.5},{"time":4,"freq":146.83,"dur":2,"vol":0.5}],"reverb":0.1,"pan":0}],"ambience":{"wind":0.3,"birds":0.5,"rain":0}} — Rules: 2-3 layers, 6-10 notes each, instrument is sine/square/sawtooth/triangle, all plain numbers.`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:2000,
+        system: systemPrompt,
+        messages:[{role:"user",content:"Style: "+prompt}]
+      })
+    });
+
+    if(!res.ok) throw new Error("API "+res.status);
+    const data=await res.json();
+    const raw=data.content.find(b=>b.type==="text")?.text||"";
+    const score = extractJSON(raw);
+
+    clearInterval(msgT); clearInterval(tipT);
+
+    // Synthesise audio from score
+    audioBuffer = await synthesise(score);
+
+    const meta=buildSongMeta();
+    document.getElementById('songTitle').textContent=meta.title;
+    document.getElementById('songDesc').textContent=meta.desc;
+    document.getElementById('promptBadge').textContent=`🎵 "${prompt}"`;
+    document.getElementById('errorBanner').style.display='none';
+    document.getElementById('timeLabel').textContent=fmtTime(audioBuffer.duration);
+    showPage('page-music');
+    playAudio(); // auto-play
+
+  } catch(err){
+    clearInterval(msgT); clearInterval(tipT);
+    console.error(err);
+    const meta=buildSongMeta();
+    document.getElementById('songTitle').textContent=meta.title;
+    document.getElementById('songDesc').textContent=meta.desc;
+    document.getElementById('promptBadge').textContent=`🎵 "${prompt}"`;
+    const banner=document.getElementById('errorBanner');
+    banner.style.display='block';
+    banner.innerHTML=`<strong>🌧️ The forest hit a snag!</strong><br>
+      Something went wrong while composing. Check the console for details, then try again.<br><br>
+      <button onclick="newSong()" style="margin-top:0.5rem;padding:0.5rem 1rem;border-radius:10px;border:none;background:var(--lavender-mid);color:white;cursor:pointer;font-weight:700;font-family:'Nunito',sans-serif;">🔄 Try again</button>
+      <br><br><small style="opacity:0.7">Error: ${err.message}</small>`;
+    showPage('page-music');
+  }
+}
+
+// ── Web Audio synthesiser ─────────────────────────────────────────────────
+async function synthesise(score){
+  const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  const spb=60/score.bpm; // seconds per beat
+  const dur=score.duration||30;
+  const sr=ctx.sampleRate;
+  const buf=ctx.createBuffer(2,sr*dur,sr);
+  const L=buf.getChannelData(0);
+  const R=buf.getChannelData(1);
+
+  // Helper: add sine wave segment
+  function addTone(freq,startS,durS,vol,wave,panV,L,R,sr){
+    const end=Math.min(startS+durS,dur);
+    const fadeIn=Math.min(0.02,durS*0.1);
+    const fadeOut=Math.min(0.05,durS*0.2);
+    for(let i=Math.floor(startS*sr);i<Math.floor(end*sr);i++){
+      const t=(i/sr)-startS;
+      let env=1;
+      if(t<fadeIn) env=t/fadeIn;
+      else if(t>(durS-fadeOut)) env=(durS-t)/fadeOut;
+      let s;
+      const ph=(freq*t)%1;
+      if(wave==='sine') s=Math.sin(2*Math.PI*freq*t);
+      else if(wave==='square') s=(ph<0.5?1:-1);
+      else if(wave==='sawtooth') s=2*ph-1;
+      else s=(ph<0.25?4*ph:ph<0.75?2-4*ph:4*ph-4); // triangle
+      const sample=s*env*vol*0.18;
+      const lv=(1-Math.max(0,panV))*sample;
+      const rv=(1+Math.min(0,panV))*sample;
+      if(i<L.length){L[i]+=lv;R[i]+=rv;}
+    }
+  }
+
+  // Layers
+  for(const layer of score.layers||[]){
+    const wave=layer.instrument||'sine';
+    const pan=layer.pan||0;
+    for(const note of layer.notes||[]){
+      const startS=note.time*spb;
+      const durS=Math.max(0.05,note.dur*spb);
+      addTone(note.freq,startS,durS,note.vol||0.5,wave,pan,L,R,sr);
+      // Simple reverb: add decayed echo
+      if(layer.reverb>0.1){
+        const echoDelay=0.08;
+        addTone(note.freq,startS+echoDelay,durS,note.vol*layer.reverb*0.4,wave,pan*0.5,L,R,sr);
+      }
+    }
+  }
+
+  // Ambience
+  const amb=score.ambience||{};
+  if(amb.wind>0.05) addNoise(L,R,sr,dur,'wind',amb.wind);
+  if(amb.birds>0.05) addBirds(L,R,sr,dur,amb.birds);
+  if(amb.rain>0.05) addNoise(L,R,sr,dur,'rain',amb.rain*0.6);
+
+  // Normalise
+  let peak=0;
+  for(let i=0;i<L.length;i++) peak=Math.max(peak,Math.abs(L[i]),Math.abs(R[i]));
+  if(peak>0.9){const g=0.85/peak;for(let i=0;i<L.length;i++){L[i]*=g;R[i]*=g;}}
+
+  ctx.close();
+  return buf;
+}
+
+function addNoise(L,R,sr,dur,type,vol){
+  const len=Math.floor(dur*sr);
+  for(let i=0;i<len;i++){
+    let n=(Math.random()*2-1)*vol*0.06;
+    if(type==='wind'){
+      // low-pass-ish: blend with neighbour
+      if(i>0){ n=n*0.05+(L[i-1]||0)*0.95; }
+      n*=0.3;
+    }
+    if(i<len){L[i]+=n;R[i]+=n*(0.9+Math.random()*0.2);}
+  }
+}
+
+function addBirds(L,R,sr,dur,vol){
+  // chirp every ~3s at random freq
+  const chirpFreqs=[2400,2800,3200,2200,3600];
+  for(let t=1;t<dur;t+=2.5+Math.random()*2){
+    const freq=chirpFreqs[Math.floor(Math.random()*chirpFreqs.length)];
+    const chirpDur=0.08+Math.random()*0.12;
+    const start=Math.floor(t*sr);
+    for(let j=0;j<Math.floor(chirpDur*sr);j++){
+      const s=Math.sin(2*Math.PI*(freq+j*10)*j/sr)*vol*0.08*Math.exp(-j/(chirpDur*sr)*4);
+      if(start+j<L.length){L[start+j]+=s;R[start+j]+=s;}
+    }
+  }
+}
+
+// ── Player controls ────────────────────────────────────────────────────────
+function playAudio(){
+  if(!audioBuffer) return;
+  if(!audioCtx||audioCtx.state==='closed')
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+
+  if(sourceNode){sourceNode.stop();sourceNode=null;}
+  sourceNode=audioCtx.createBufferSource();
+  sourceNode.buffer=audioBuffer;
+  sourceNode.connect(audioCtx.destination);
+  sourceNode.start(0,pauseOffset);
+  startTime=audioCtx.currentTime-pauseOffset;
+  isPlaying=true;
+  document.getElementById('playBtn').textContent='⏸';
+  document.querySelectorAll('.wave-bar').forEach(b=>b.classList.remove('paused'));
+  sourceNode.onended=()=>{
+    if(isPlaying){pauseOffset=0;isPlaying=false;
+      document.getElementById('playBtn').textContent='▶';
+      document.querySelectorAll('.wave-bar').forEach(b=>b.classList.add('paused'));
+      document.getElementById('progressFill').style.width='0%';
+      document.getElementById('timeLabel').textContent=fmtTime(audioBuffer.duration);
+    }
+  };
+  tickProgress();
+}
+
+function pauseAudio(){
+  if(!audioCtx||!isPlaying) return;
+  pauseOffset=audioCtx.currentTime-startTime;
+  sourceNode.stop();sourceNode=null;
+  isPlaying=false;
+  document.getElementById('playBtn').textContent='▶';
+  document.querySelectorAll('.wave-bar').forEach(b=>b.classList.add('paused'));
+  cancelAnimationFrame(progressRAF);
+}
+
+function togglePlay(){ isPlaying?pauseAudio():playAudio(); }
+
+function seekTo(e){
+  if(!audioBuffer) return;
+  const wrap=document.getElementById('progressWrap');
+  const ratio=e.offsetX/wrap.offsetWidth;
+  pauseOffset=ratio*audioBuffer.duration;
+  if(isPlaying){sourceNode&&sourceNode.stop();sourceNode=null;isPlaying=false;playAudio();}
+  else updateProgressUI(pauseOffset);
+}
+
+function tickProgress(){
+  if(!isPlaying||!audioCtx) return;
+  const elapsed=audioCtx.currentTime-startTime;
+  updateProgressUI(Math.min(elapsed,audioBuffer.duration));
+  progressRAF=requestAnimationFrame(tickProgress);
+}
+
+function updateProgressUI(elapsed){
+  const pct=audioBuffer?(elapsed/audioBuffer.duration*100):0;
+  document.getElementById('progressFill').style.width=pct+'%';
+  const rem=audioBuffer?audioBuffer.duration-elapsed:0;
+  document.getElementById('timeLabel').textContent=fmtTime(Math.max(0,rem));
+}
+
+function fmtTime(s){const m=Math.floor(s/60);return m+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60);}
+
+// ── Export ─────────────────────────────────────────────────────────────────
+function exportSong(){
+  if(!audioBuffer){alert('No audio yet — make a song first! 🌿');return;}
+  const wav=encodeWAV(audioBuffer.getChannelData(0),audioBuffer.getChannelData(1),audioBuffer.sampleRate,audioBuffer.length);
+  // Convert ArrayBuffer → base64 data URL (works in sandboxed iframes)
+  const bytes=new Uint8Array(wav);
+  let bin='';
+  for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]);
+  const b64=btoa(bin);
+  const a=document.createElement('a');
+  a.href='data:audio/wav;base64,'+b64;
+  a.download=`Breezree - ${buildSongMeta().title}.wav`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function encodeWAV(L,R,sr,len){
+  const buf=new ArrayBuffer(44+len*4);
+  const v=new DataView(buf);
+  function ws(off,str){for(let i=0;i<str.length;i++)v.setUint8(off+i,str.charCodeAt(i));}
+  ws(0,'RIFF');v.setUint32(4,36+len*4,true);ws(8,'WAVE');
+  ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,2,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr*4,true);v.setUint16(32,4,true);v.setUint16(34,16,true);
+  ws(36,'data');v.setUint32(40,len*4,true);
+  let off=44;
+  for(let i=0;i<len;i++){
+    v.setInt16(off,Math.max(-1,Math.min(1,L[i]))*0x7FFF,true);off+=2;
+    v.setInt16(off,Math.max(-1,Math.min(1,R[i]))*0x7FFF,true);off+=2;
+  }
+  return buf;
+}
+
+// ── New song ───────────────────────────────────────────────────────────────
+function newSong(){
+  if(isPlaying) pauseAudio();
+  audioBuffer=null;pauseOffset=0;
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  currentStep=0;
+  document.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('selected'));
+  goToStep(0);showPage('page-qna');
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
